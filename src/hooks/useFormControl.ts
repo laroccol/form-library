@@ -15,7 +15,7 @@ import {
  */
 const generateDefaultFormData = (
   formLayout: FormLayout,
-  defaultData: FormData
+  defaultData?: FormData | null
 ): FormData => {
   const formData: FormData = defaultData || {};
 
@@ -43,18 +43,26 @@ const generateDefaultFormData = (
  * @param param0 - The form layout and default data.
  * @returns The initial state of the form.
  */
-const init = ({ formLayout, defaultData }): FormControlState => {
+const init = ({
+  formLayout,
+  defaultData,
+}: Pick<FormControlProps, "formLayout" | "defaultData">): FormControlState => {
   const formData = generateDefaultFormData(formLayout, defaultData);
   return {
     formData,
-    action: FormAction.NONE,
     formErrors: {},
   };
 };
 
+/**
+ * Reset the form to an empty state.
+ * @param state - The current state of the form.
+ * @param formLayout - The layout of the form.
+ * @returns The new state of the form.
+ */
 const reset = (
   state: FormControlState,
-  formLayout: InputInfo
+  formLayout: FormLayout
 ): FormControlState => {
   const formData = generateDefaultFormData(formLayout, null);
 
@@ -70,9 +78,16 @@ const reset = (
     }
   });
 
-  return { ...state, formData, action: FormAction.NONE, formErrors: {} };
+  return { ...state, formData, formErrors: {} };
 };
 
+/**
+ * Change a field in the form.
+ * @param state - The current state of the form.
+ * @param key - The key of the field to change.
+ * @param value - The new value of the field.
+ * @returns The new state of the form.
+ */
 const changeField = (
   state: FormControlState,
   key: string,
@@ -81,6 +96,12 @@ const changeField = (
   return { ...state, formData: { ...state.formData, [key]: value } };
 };
 
+/**
+ * Check if the form data is valid.
+ * @param data - The form data.
+ * @param formLayout - The layout of the form.
+ * @returns The errors in the form data (see FormErrors).
+ */
 const checkData = (data: FormData, formLayout: FormLayout): FormErrors => {
   const errors: FormErrors = {};
   Object.keys(formLayout).map((key) => {
@@ -92,13 +113,22 @@ const checkData = (data: FormData, formLayout: FormLayout): FormErrors => {
   return errors;
 };
 
+/**
+ * Submit the form.
+ * @param state - The current state of the form.
+ * @param formLayout - The layout of the form.
+ * @param onSubmit - The function to call when the form is submitted.
+ * @returns The new state of the form.
+ */
 const submit = (
   state: FormControlState,
   formLayout: FormLayout,
   onSubmit: (data: FormData) => any | Promise<any>
 ): FormControlState => {
+  // Check if the form data is valid
   const errors = checkData(state.formData, formLayout);
 
+  // If there are no errors then submit the form
   if (Object.keys(errors).length === 0) {
     onSubmit(state.formData);
   }
@@ -106,6 +136,7 @@ const submit = (
   return { ...state, formErrors: errors };
 };
 
+// Actions
 interface ResetAction {
   type: "reset";
   formLayout: FormLayout;
@@ -127,6 +158,12 @@ export type FormDataReducerAction =
   | SubmitAction
   | ChangeFieldAction;
 
+/**
+ * The reducer for the form state.
+ * @param state - The current state of the form.
+ * @param action - The action to perform on the form state.
+ * @returns The new state of the form.
+ */
 const reducer = (
   state: FormControlState,
   action: FormDataReducerAction
@@ -154,6 +191,11 @@ interface FormControlProps {
   onSubmit: (data: FormData) => any | Promise<any>;
 }
 
+/**
+ * Hook for managing the state of a form.
+ * @param param0 - The form layout, default data, and submit function.
+ * @returns The form state and dispatch functions.
+ */
 export function useFormControl({
   formLayout,
   onSubmit,
@@ -165,44 +207,25 @@ export function useFormControl({
     init
   );
 
-  //   const submitMutation = useMutation({
-  //     mutationFn: (data: FormData) => {
-  //       return onSubmit(data);
-  //     },
-  //     onSuccess: () => {
-  //       toast(successToastConfig("Action Successful"));
-  //       queryClient.invalidateQueries({ queryKey: [pathName] });
-  //       formDispatch({ type: "done", formLayout });
-
-  //       if (resetOnSuccess) {
-  //         formDispatch({ type: "reset", formLayout });
-  //       }
-
-  //       if (onSuccess) {
-  //         onSuccess();
-  //       }
-  //     },
-  //     onError: (error) => {
-  //       console.log(error);
-  //       // prettier-ignore
-  //       toast(
-  //               errorToastConfig(
-  //                 // @ts-expect-error TODO: Create TypeScript type for error response
-  //                 `Error Submitting Form: ${error?.response?.data?.errorMessage || "Unknown error"}`
-  //               )
-  //             );
-  //       formDispatch({ type: "done", formLayout });
-  //     },
-  //   });
-
+  /**
+   * Reset the form to an empty state.
+   */
   const reset = () => {
     formDispatch({ type: "reset", formLayout });
   };
 
+  /**
+   * Check if the form data is valid and submit the form if it is.
+   */
   const submit = () => {
     formDispatch({ type: "submit", formLayout, onSubmit });
   };
 
+  /**
+   * Change a field in the form.
+   * @param key - The key of the field to change.
+   * @param value - The new value of the field.
+   */
   const changeField = (key: string, value: InputDataType) => {
     formDispatch({ type: "changeField", key, value });
   };
