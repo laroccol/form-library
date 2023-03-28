@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from "react";
+import { useReducer } from "react";
 import {
   FormData,
   FormErrors,
@@ -50,16 +50,6 @@ const reset = (
 ): FormControlState => {
   const formData = generateDefaultFormData(formLayout, null);
 
-  // Reset date inputs because they are uncontrolled
-  formLayout.map(({ id, inputType }) => {
-    if (inputType === InputType.DATE) {
-      const element = document.getElementById(`DATE_${id}`) as HTMLInputElement;
-      if (element) {
-        element.value = "";
-      }
-    }
-  });
-
   return { ...state, formData, formErrors: {} };
 };
 
@@ -95,6 +85,24 @@ const checkData = (data: FormData, formLayout: FormLayout): FormErrors => {
 };
 
 /**
+ * Numbers in the form data are stored as strings so they need to be parsed to numbers.
+ * @param data - The form data.
+ * @param formLayout - The layout of the form.
+ * @returns The form data with numbers parsed.
+ */
+const parseNumbers = (data: FormData, formLayout: FormLayout): FormData => {
+  const parsedData: FormData = {};
+  formLayout.map(({ id, inputType }) => {
+    if (inputType === InputType.NUMBER) {
+      parsedData[id] = Number(data[id]);
+    } else {
+      parsedData[id] = data[id];
+    }
+  });
+  return parsedData;
+};
+
+/**
  * Submit the form.
  * @param state - The current state of the form.
  * @param formLayout - The layout of the form.
@@ -111,7 +119,7 @@ const submit = (
 
   // If there are no errors then submit the form
   if (Object.keys(errors).length === 0) {
-    onSubmit(state.formData);
+    onSubmit(parseNumbers(state.formData, formLayout)); // Parse numbers before submitting
   }
 
   return { ...state, formErrors: errors };

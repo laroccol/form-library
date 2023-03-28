@@ -1,22 +1,10 @@
 /**
  * The type of data that can be entered into the form (primitive types).
- * @typedef {boolean | number | string} InputDataType
- * @property {boolean} boolean - Boolean
- * @property {number} number - Number
- * @property {string} string - String
  */
 export type InputDataType = boolean | number | string;
 
 /**
  * The type of input field that will be displayed on the form.
- * @enum {string}
- * @property {string} BOOLEAN - Boolean
- * @property {string} DATE - Date
- * @property {string} DROPDOWN - Dropdown
- * @property {string} NUMBER - Number
- * @property {string} RADIO - Radio
- * @property {string} TEXT - Text
- * @property {string} TEXTAREA - Textarea
  */
 export enum InputType {
   BOOLEAN = "boolean",
@@ -30,7 +18,6 @@ export enum InputType {
 
 /**
  * The conditions for hiding the field.
- * @typedef {Object} HideCondition
  * @property {string} id - The id of the field to check.
  * @property {InputDataType | InputDataType[]} values - The values to check for.
  * @example
@@ -43,7 +30,6 @@ interface HideCondition {
 
 /**
  * The options for a dropdown or radio field.
- * @typedef {Object} Option
  * @property {string} display - The display value of the option.
  * @property {string} value - The value of the option.
  * @example
@@ -52,14 +38,13 @@ interface HideCondition {
  *  value: "option-1"
  * }
  */
-interface Option {
+export interface Option {
   display: string;
   value: string;
 }
 
 /**
  * Configuration for each field on the form.
- * @typedef {Object} FieldOptions
  * @property {string} id - Required - The id of the field.
  * @property {InputType} inputType - Required - The type of input field that will be displayed on the form.
  * @property {number} length - Required - The number of columns the field will span (0-10).
@@ -92,7 +77,6 @@ interface FieldOptions {
 
 /**
  * The layout of the form.
- * @typedef {Object} FormLayout
  * @property {FieldOptions} [key] - The configuration for the field.
  * @example
  * [
@@ -114,7 +98,6 @@ export type FormLayout = FieldOptions[];
 
 /**
  * The data entered into the form as key value pairs.
- * @typedef {Object} FormData
  * @property {InputDataType} [key] - The data entered into the field.
  * @example
  * {
@@ -127,7 +110,6 @@ export type FormData = Record<string, InputDataType>;
 
 /**
  * The errors that exist in the form.
- * @typedef {Object} FormErrors
  * @property {string} [key] - The error message for the field.
  * @example
  * {

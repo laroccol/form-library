@@ -1,7 +1,29 @@
-import { Fragment, useRef } from "react";
-import { FormData, FormLayout, InputDataType, InputType } from "types/form";
+import { Fragment } from "react";
+import { FormLayout, InputDataType, InputType } from "../types/form";
 import { FormControlState } from "hooks/useFormControl";
 import TextInput from "./inputs/TextInput";
+import { InputComponents } from "../types/input";
+import InputWrapper from "./inputs/InputWrapper";
+import { CHANGE_HANDLERS } from "../utils/changeHandlers";
+import DateInput from "./inputs/DateInput";
+import TextArea from "./inputs/TextArea";
+import CheckBox from "./inputs/CheckBox";
+import Dropdown from "./inputs/Dropdown";
+import RadioButtons from "./inputs/RadioButtons";
+import NumberInput from "./inputs/NumberInput";
+
+/**
+ * Default input components for each input type
+ */
+const DEAFULT_INPUT_COMPONENTS: InputComponents = {
+  [InputType.BOOLEAN]: CheckBox,
+  [InputType.DATE]: DateInput,
+  [InputType.DROPDOWN]: Dropdown,
+  [InputType.NUMBER]: NumberInput,
+  [InputType.RADIO]: RadioButtons,
+  [InputType.TEXT]: TextInput,
+  [InputType.TEXTAREA]: TextArea,
+};
 
 const styles = {
   gridContainer: {
@@ -16,50 +38,57 @@ const styles = {
   },
 } as const;
 
+/**
+ * Props for the Form component
+ * @param formLayout - The layout of the form
+ * @param formState - The state of the form
+ * @param inputComponents - Optional object containing custom input components
+ * @param loading - Optional boolean indicating if the form is loading
+ * @param disableButton - Optional boolean indicating if the submit button should be removed
+ * @param onSubmit - Callback function to be called when the form is submitted
+ * @param onChangeField - Callback function to be called when a field is changed
+ */
 interface FormProps {
   formLayout: FormLayout;
   formState: FormControlState;
+  inputComponents?: InputComponents;
   loading?: boolean;
   disableButton?: boolean;
   onSubmit: () => void;
   onChangeField: (key: string, value: InputDataType) => void;
 }
 
+/**
+ * Component for rendering a form based on a layout.
+ */
 export default function Form({
   formLayout,
   formState: { formData, formErrors },
+  inputComponents,
   loading,
   disableButton,
   onSubmit,
   onChangeField,
 }: FormProps) {
-  const firstInputRef = useRef(null);
   return (
     <form style={styles.gridContainer}>
       {formLayout.map(
-        (
-          {
-            id,
-            inputType,
-            length,
-            defaultValue,
-            displayValue,
-            fillLine,
-            hideConditions,
-            maxChars,
-            options,
-            paddingLeft,
-            paddingRight,
-            precision,
-            required,
-          },
-          index
-        ) => {
+        ({
+          id,
+          inputType,
+          length,
+          paddingLeft,
+          paddingRight,
+          fillLine,
+          hideConditions,
+          displayValue,
+          maxChars,
+          required,
+          ...inputProps
+        }) => {
           const SetValue = (value: InputDataType) => {
             onChangeField(id, value);
           };
-
-          let display = <p>INVALID</p>;
 
           // Check if we should hide input based on other input values
           let isVisible = true;
@@ -73,16 +102,29 @@ export default function Form({
           }
 
           const label = displayValue ?? id;
-          display = (
-            <TextInput
-              value={(formData[id] ?? "") as string}
-              setValue={SetValue}
-              label={label}
-              maxChars={maxChars}
-              errorMessage={formErrors[id]}
-              required={required}
-            />
-          );
+          const InputComponent =
+            inputComponents?.[inputType as InputType] ??
+            DEAFULT_INPUT_COMPONENTS[inputType as InputType]; // Use custom input component if provided, otherwise use default
+
+          let display = null;
+          if (InputComponent) {
+            display = (
+              <InputComponent
+                value={(formData[id] ?? "") as string}
+                onChange={(event) => {
+                  CHANGE_HANDLERS[inputType as InputType](
+                    event,
+                    SetValue,
+                    maxChars ?? 1000
+                  );
+                }}
+                maxChars={maxChars}
+                options={inputProps.options || []}
+                id={id}
+                {...inputProps}
+              />
+            );
+          }
 
           const fillPercent = fillLine ? length * 10 : 100;
           return (
@@ -104,7 +146,15 @@ export default function Form({
                   }`,
                 }}
               >
-                <div style={{ width: `${fillPercent}%` }}> {display}</div>
+                <div style={{ width: `${fillPercent}%` }}>
+                  <InputWrapper
+                    label={label}
+                    required={required}
+                    errorMessage={formErrors[id]}
+                  >
+                    {display}
+                  </InputWrapper>
+                </div>
               </div>
               {paddingRight && (
                 <div

@@ -3,6 +3,7 @@ import reactLogo from "./assets/react.svg";
 import "./App.css";
 import Form from "./components/Form";
 import { useFormControl } from "./hooks/useFormControl";
+import { FormLayout } from "./types/form";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -38,7 +39,7 @@ const TestComponent = () => {
   const [count, setCount] = useState(0);
   const { formState, submit, changeField } = useFormControl(
     testFormLayout,
-    () => null
+    (data) => console.log(data)
   );
 
   return (
@@ -51,7 +52,7 @@ const TestComponent = () => {
   );
 };
 
-const testFormLayout = [
+const testFormLayout: FormLayout = [
   {
     id: "test",
     inputType: "text",
@@ -60,13 +61,76 @@ const testFormLayout = [
   },
   {
     id: "test2",
-    inputType: "text",
-    length: 5,
+    inputType: "textarea",
+    length: 10,
     displayValue: "Test 2",
   },
   {
     id: "test3",
-    inputType: "text",
+    inputType: "date",
+    length: 10,
+  },
+  { id: "checkbox", inputType: "boolean", length: 10 },
+  {
+    id: "select",
+    inputType: "dropdown",
+    length: 10,
+    options: [
+      {
+        value: "test",
+        display: "Test",
+      },
+      {
+        value: "test2",
+        display: "Test 2",
+      },
+      {
+        value: "test3",
+        display: "Test 3",
+      },
+    ],
+  },
+  {
+    id: "select2",
+    inputType: "radio",
+    length: 10,
+    options: [
+      {
+        value: "test",
+        display: "Test",
+      },
+      {
+        value: "test2",
+        display: "Test 2",
+      },
+      {
+        value: "test3",
+        display: "Test 3",
+      },
+    ],
+  },
+  {
+    id: "select3",
+    inputType: "radio",
+    length: 10,
+    options: [
+      {
+        value: "test",
+        display: "Test",
+      },
+      {
+        value: "test2",
+        display: "Test 2",
+      },
+      {
+        value: "test3",
+        display: "Test 3",
+      },
+    ],
+  },
+  {
+    id: "num",
+    inputType: "number",
     length: 10,
   },
 ];

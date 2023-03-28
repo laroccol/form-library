@@ -39,15 +39,3 @@
 .read-the-docs {
   color: #888;
 }
-
-.error-message {
-  position: absolute;
-  bottom: -20px;
-  left: 0;
-  color: red;
-  display: none;
-}
-
-input:invalid + .error-message {
-  display: block;
-}
