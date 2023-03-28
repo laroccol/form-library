@@ -1,11 +1,11 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer } from "react";
 import {
   FormData,
   FormErrors,
   FormLayout,
   InputDataType,
   InputType,
-} from "types/form";
+} from "../types/form";
 
 /**
  * Set default values if any exist otherwise set to respective empty value (string | number: "", boolean: false)
@@ -19,39 +19,23 @@ const generateDefaultFormData = (
 ): FormData => {
   const formData: FormData = defaultData || {};
 
-  Object.entries(formLayout).map(([key, { inputType, defaultValue }]) => {
-    if (formData[key] != null) return; // If the field already has a value then don't overwrite it
+  formLayout.map(({ id, inputType, defaultValue }) => {
+    if (formData[id] != null) return; // If the field already has a value then don't overwrite it
 
     // If the field doesn't spcify a default value then set it to the respective empty value
     if (defaultValue == null) {
       if (inputType === InputType.BOOLEAN) {
-        formData[key] = false;
+        formData[id] = false;
         return;
       } else {
-        formData[key] = "";
+        formData[id] = "";
         return;
       }
     }
-    formData[key] = defaultValue;
+    formData[id] = defaultValue;
   });
 
   return formData;
-};
-
-/**
- * Initialize the form state.
- * @param param0 - The form layout and default data.
- * @returns The initial state of the form.
- */
-const init = ({
-  formLayout,
-  defaultData,
-}: Pick<FormControlProps, "formLayout" | "defaultData">): FormControlState => {
-  const formData = generateDefaultFormData(formLayout, defaultData);
-  return {
-    formData,
-    formErrors: {},
-  };
 };
 
 /**
@@ -67,11 +51,9 @@ const reset = (
   const formData = generateDefaultFormData(formLayout, null);
 
   // Reset date inputs because they are uncontrolled
-  Object.keys(formLayout).map((key) => {
-    if (formLayout[key].inputType === InputType.DATE) {
-      const element = document.getElementById(
-        `DATE_${key}`
-      ) as HTMLInputElement;
+  formLayout.map(({ id, inputType }) => {
+    if (inputType === InputType.DATE) {
+      const element = document.getElementById(`DATE_${id}`) as HTMLInputElement;
       if (element) {
         element.value = "";
       }
@@ -104,10 +86,9 @@ const changeField = (
  */
 const checkData = (data: FormData, formLayout: FormLayout): FormErrors => {
   const errors: FormErrors = {};
-  Object.keys(formLayout).map((key) => {
-    const input = formLayout[key];
-    if ((input.required && data[key] === "") || data[key] === null) {
-      errors[key] = "Field is required";
+  formLayout.map(({ id, required }) => {
+    if ((required && data[id] === "") || data[id] === null) {
+      errors[id] = "Field is required";
     }
   });
   return errors;
@@ -185,27 +166,22 @@ export interface FormControlState {
   formErrors: FormErrors;
 }
 
-interface FormControlProps {
-  formLayout: FormLayout;
-  defaultData?: FormData;
-  onSubmit: (data: FormData) => any | Promise<any>;
-}
-
 /**
  * Hook for managing the state of a form.
- * @param param0 - The form layout, default data, and submit function.
+ * @param formLayout - REQUIRED - The layout of the form.
+ * @param onSubmit - The function to call when the form is submitted.
+ * @param defaultData - The default data for the form.
  * @returns The form state and dispatch functions.
  */
-export function useFormControl({
-  formLayout,
-  onSubmit,
-  defaultData,
-}: FormControlProps) {
-  const [formState, formDispatch] = useReducer(
-    reducer,
-    { formLayout, defaultData },
-    init
-  );
+export function useFormControl(
+  formLayout: FormLayout,
+  onSubmit: (data: FormData) => any | Promise<any>,
+  defaultData?: FormData
+) {
+  const [formState, formDispatch] = useReducer(reducer, {
+    formData: generateDefaultFormData(formLayout, defaultData),
+    formErrors: {},
+  });
 
   /**
    * Reset the form to an empty state.

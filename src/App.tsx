@@ -1,6 +1,8 @@
 import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import "./App.css";
+import Form from "./components/Form";
+import { useFormControl } from "./hooks/useFormControl";
 
 function App() {
   const [count, setCount] = useState(0);
@@ -34,21 +36,39 @@ function App() {
 
 const TestComponent = () => {
   const [count, setCount] = useState(0);
+  const { formState, submit, changeField } = useFormControl(
+    testFormLayout,
+    () => null
+  );
 
   return (
-    <div>
-      <p key="1">Count: {count}</p>
-      {[1, 2, 3].map((item) => (
-        <input
-          key={item}
-          type="button"
-          value={`${item}`}
-          onClick={() => setCount(count + 1)}
-        />
-      ))}
-      <button onClick={() => setCount(count + 1)}>Increment</button>
-    </div>
+    <Form
+      formLayout={testFormLayout}
+      formState={formState}
+      onSubmit={submit}
+      onChangeField={changeField}
+    />
   );
 };
+
+const testFormLayout = [
+  {
+    id: "test",
+    inputType: "text",
+    length: 10,
+    required: true,
+  },
+  {
+    id: "test2",
+    inputType: "text",
+    length: 5,
+    displayValue: "Test 2",
+  },
+  {
+    id: "test3",
+    inputType: "text",
+    length: 10,
+  },
+];
 
 export default App;
